@@ -52,7 +52,8 @@ def main():
   done = False
   while not done:
     done = game.play_turn()
-    game.game_state.pprint(show_colors=True)
+  
+  game.game_state.pprint(show_colors=True)
   
 
 if __name__ == "__main__":

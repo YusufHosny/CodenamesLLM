@@ -1,3 +1,4 @@
+import os
 import random
 import enum
 from typing import List, Optional, Tuple
@@ -10,7 +11,7 @@ _logger = logging.getLogger('codenames.game')
 
 # ---------------------------------------- Config ---------------------------------------
 class CONFIG:
-  WORDS_FILE = 'words.txt'
+  WORDS_FILE = os.path.join(os.path.dirname(__file__), '..', 'words.txt')
   NUM_WORDS = 25
   DIM_X = 5
   DIM_Y = 5
@@ -91,6 +92,9 @@ class CodeNamesGameState:
     self.current_team = CodeNamesTeam.RED
     self.game_over = False
     self.dims = (CONFIG.DIM_X, CONFIG.DIM_Y)
+    self.ai_config = {
+      'word_count': '2 or more'
+    }
     self.history = []
 
   def reveal_word(self, index: int):

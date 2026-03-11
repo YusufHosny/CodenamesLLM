@@ -55,10 +55,10 @@ class LLMCodeNamesSpyMaster(LLMCodeNamesPlayer, CodeNamesSpyMasterInterface):
 
     clue_prompt_template = (
         "You are the SpyMaster in a game of Codenames. The grid has the following words:\n"
-        "Your Words: {ours}\n"
-        "Opponent's Words: {theirs}\n"
+        "Your Words: {ours}\n Your Revealed Words: {revealed_ours}\n"
+        "Opponent's Words: {theirs}\n Opponent's Revealed Words: {revealed_theirs}\n"
         "Assassin Word: {assassin}\n"
-        "Provide a clue that relates at least 2 of your team's words without relating to the opponent's words or the assassin.\n"
+        "Provide a clue that relates {word_count} of your team's words without relating to the opponent's words or the assassin.\n"
         "Links can fall into one or more of the following categories\n"
         "1. Word continuations (e.g., to link 'bottle' and 'gun' you could use 'water-' with a hyphen indicating it)\n"
         "2. Categorical (e.g., to link 'apple' and 'banana' you could use 'fruit')\n"
@@ -74,16 +74,28 @@ class LLMCodeNamesSpyMaster(LLMCodeNamesPlayer, CodeNamesSpyMasterInterface):
       word.word for i, word in enumerate(game_state.words)
       if game_state.current_team.color_matches(word.color) and not game_state.is_revealed(i)
     ]
+    revealed_ours = [
+      word.word for i, word in enumerate(game_state.words)
+      if game_state.current_team.color_matches(word.color) and game_state.is_revealed(i)
+    ]
     theirs = [
       word.word for i, word in enumerate(game_state.words)
       if game_state.current_team.opposite().color_matches(word.color) and not game_state.is_revealed(i)
     ]
+    revealed_theirs = [
+      word.word for i, word in enumerate(game_state.words)
+      if game_state.current_team.opposite().color_matches(word.color) and game_state.is_revealed(i)
+    ]
     assassin = next((word.word for i, word in enumerate(game_state.words) if word.color == CodeNamesWordType.ASSASSIN), "No Assassin Word")
+    word_count = game_state.ai_config.get('word_count', '2 or more')
 
     clue_prompt = clue_prompt_template.format(
         ours=", ".join(ours) if ours else "None",
         theirs=", ".join(theirs) if theirs else "None",
-        assassin=assassin
+        revealed_ours=", ".join(revealed_ours) if revealed_ours else "None",
+        revealed_theirs=", ".join(revealed_theirs) if revealed_theirs else "None",
+        assassin=assassin,
+        word_count=word_count
     )
     clue_response = self.llm.invoke(clue_prompt)
 
@@ -111,7 +123,9 @@ class LLMCodeNamesGuesser(LLMCodeNamesPlayer, CodeNamesGuesserInterface):
     
     guess_prompt_template = (
         "You are a Guesser in a game of Codenames. The grid has the following words currently unrevealed:\n"
-        "Grid: {grid}\n"
+        "Unrevealed Words: {grid}\n"
+        "Your Revealed Words: {revealed_ours}\n"
+        "Opponent's Revealed Words: {revealed_theirs}\n"
         "The SpyMaster has given the clue: '{clue}' for {number} words.\n"
         "Based on the clue, select one word from the grid that you think matches the clue. You can also choose to pass if you are unsure.\n"
         "Start your response with the reasoning behind the selection and then the guess in the format: 'guess <word-number>. <word>' or 'pass' if you choose to pass."
@@ -121,6 +135,14 @@ class LLMCodeNamesGuesser(LLMCodeNamesPlayer, CodeNamesGuesserInterface):
       f'{i}. {word.word}' for i, word in enumerate(game_state.words)
       if not game_state.is_revealed(i)
     ]
+    revealed_ours = [
+      word.word for i, word in enumerate(game_state.words)
+      if game_state.current_team.color_matches(word.color) and game_state.is_revealed(i)
+    ]
+    revealed_theirs = [
+      word.word for i, word in enumerate(game_state.words)
+      if game_state.current_team.opposite().color_matches(word.color) and game_state.is_revealed(i)
+    ]
 
     clue_obj = game_state.last_clue()
     clue = clue_obj.clue if clue_obj else "No clue provided"
@@ -128,6 +150,8 @@ class LLMCodeNamesGuesser(LLMCodeNamesPlayer, CodeNamesGuesserInterface):
 
     guess_prompt = guess_prompt_template.format(
         grid=", ".join(grid) if grid else "None",
+        revealed_ours=", ".join(revealed_ours) if revealed_ours else "None",
+        revealed_theirs=", ".join(revealed_theirs) if revealed_theirs else "None",
         clue=clue,
         number=number
     )
