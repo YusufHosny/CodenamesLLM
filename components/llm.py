@@ -87,7 +87,7 @@ class LLMCodeNamesSpyMaster(LLMCodeNamesPlayer, CodeNamesSpyMasterInterface):
       if game_state.current_team.opposite().color_matches(word.color) and game_state.is_revealed(i)
     ]
     assassin = next((word.word for i, word in enumerate(game_state.words) if word.color == CodeNamesWordType.ASSASSIN), "No Assassin Word")
-    word_count = game_state.ai_config.get('word_count', '2 or more')
+    word_count = game_state.ai_config['word_count'][game_state.current_team]
 
     clue_prompt = clue_prompt_template.format(
         ours=", ".join(ours) if ours else "None",

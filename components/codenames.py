@@ -93,7 +93,10 @@ class CodeNamesGameState:
     self.game_over = False
     self.dims = (CONFIG.DIM_X, CONFIG.DIM_Y)
     self.ai_config = {
-      'word_count': '2 or more'
+      'word_count': {
+        CodeNamesTeam.RED: '2 or more',
+        CodeNamesTeam.BLUE: '2 or more'
+      }
     }
     self.history = []
 

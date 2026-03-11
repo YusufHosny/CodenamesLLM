@@ -296,8 +296,8 @@ class TKCodeNamesSpyMaster(TKCodeNamesPlayer, CodeNamesSpyMasterInterface):
 class TKCodeNamesGuesser(TKCodeNamesPlayer, CodeNamesGuesserInterface):
   def __init__(self, name: str):
     super().__init__(name=name + " (Guesser)", show_colors=False)
-    self._build_guesser_input()
     self._waiting = False
+    self._build_guesser_input()
 
   def _build_guesser_input(self):
     self.pass_btn = tk.Button(
@@ -321,7 +321,7 @@ class TKCodeNamesGuesser(TKCodeNamesPlayer, CodeNamesGuesserInterface):
     self.word_count_slider = tk.Scale(
       self.input_frame, from_=1, to=5, orient=tk.HORIZONTAL,
       variable=self._word_count_var, font=('Helvetica', 10),
-      length=120, showvalue=True
+      length=120, showvalue=True, command=self._on_word_count_change,
     )
     self.word_count_slider.pack(side=tk.LEFT)
 
@@ -338,6 +338,11 @@ class TKCodeNamesGuesser(TKCodeNamesPlayer, CodeNamesGuesserInterface):
     if not self._waiting:
       return
     self._result_var.set(-2)
+
+  def _on_word_count_change(self, value):
+    if self.game_state:
+      team = self.game_state.current_team if self._waiting else self.game_state.current_team.opposite()
+      self.game_state.ai_config['word_count'][team] = str(value)
 
   def _render_grid(self, game_state):
     """Override to use clickable buttons for unrevealed words."""
@@ -383,7 +388,6 @@ class TKCodeNamesGuesser(TKCodeNamesPlayer, CodeNamesGuesserInterface):
 
   def get_guess(self, game_state):
     self.game_state = game_state
-    game_state.ai_config['word_count'] = str(self._word_count_var.get())
     self._update_display(game_state)
 
     self._waiting = True
