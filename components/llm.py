@@ -1,9 +1,13 @@
-from .codenames import CodeNamesAction, CodeNamesActionType, CodeNamesGameState, CodeNamesGuesserInterface, CodeNamesSpyMasterInterface, CodeNamesWordType
+from .codenames import (
+  CodeNamesAction, CodeNamesActionType, CodeNamesGameState,
+  CodeNamesGuesserInterface, CodeNamesPlayerInterface, CodeNamesSpyMasterInterface, CodeNamesWordType
+)
 from typing import Optional
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
 from langsmith import traceable
 
+# --------------------------------------- Env Setup ---------------------------------------
 from dotenv import load_dotenv
 load_dotenv()
 import os
@@ -12,9 +16,11 @@ if not os.getenv("OPENAI_API_KEY"):
 if not os.getenv("LANGSMITH_API_KEY"):
     raise ValueError("LANGSMITH_API_KEY not found in environment variables.")
 
+# --------------------------------------- Logging ---------------------------------------
 import logging
 _logger = logging.getLogger('codenames.llm')
 
+# --------------------------------------- Pydantic Models ---------------------------------------
 class ClueModel(BaseModel):
     "Model for a clue action provided by the SpyMaster."
     clue: str = Field(..., description="The clue word provided by the SpyMaster")
@@ -25,16 +31,18 @@ class GuessModel(BaseModel):
     guess: Optional[int] = Field(None, description="Position of the guessed word, or None if passing")
     pass_turn: bool = Field(False, description="Whether the guesser chooses to pass their turn")
 
-class LLMCodeNamesPlayer:
-    def __init__(self):
-        super().__init__()
+# --------------------------------------- LLM PlayerInterface ---------------------------------------
+class LLMCodeNamesPlayer(CodeNamesPlayerInterface):
+  def __init__(self, name: str):
+    super().__init__(name=name)
 
-    def notify(self, game_state: CodeNamesGameState):
-        self.game_state = game_state
+  def notify(self, game_state: CodeNamesGameState):
+    self.game_state = game_state
 
+# --------------------------------------- SpyMaster ---------------------------------------
 class LLMCodeNamesSpyMaster(LLMCodeNamesPlayer, CodeNamesSpyMasterInterface):
-  def __init__(self):
-    super().__init__()
+  def __init__(self, name: str):
+    super().__init__(name=name)
     self.llm = ChatOpenAI(model="gpt-5.2", temperature=0.7)
 
   def get_clue(self, game_state: CodeNamesGameState) -> CodeNamesAction:
@@ -87,12 +95,18 @@ class LLMCodeNamesSpyMaster(LLMCodeNamesPlayer, CodeNamesSpyMasterInterface):
 
     return CodeNamesAction(action_type=CodeNamesActionType.CLUE, clue=format_response.clue, number=format_response.number)
 
+# --------------------------------------- Guesser ---------------------------------------
 class LLMCodeNamesGuesser(LLMCodeNamesPlayer, CodeNamesGuesserInterface):
-  def __init__(self):
-    super().__init__()
+  def __init__(self, name: str):
+    super().__init__(name=name)
     self.llm = ChatOpenAI(model="gpt-5.2", temperature=0.7)
 
   def get_guess(self, game_state: CodeNamesGameState) -> CodeNamesAction:
+    guess_action = self.get_guess_traceable(game_state)
+    return guess_action
+
+  @traceable(name="Guesser Guess Generation")
+  def get_guess_traceable(self, game_state: CodeNamesGameState) -> CodeNamesAction:
     self.game_state = game_state
     
     guess_prompt_template = (

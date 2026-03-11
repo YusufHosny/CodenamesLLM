@@ -1,6 +1,7 @@
+# --------------------------------------- vibe coded ui, not reading allat ---------------------------------------
 import tkinter as tk
 from tkinter import ttk, messagebox
-from codenames import (
+from .codenames import (
     CodeNamesAction, CodeNamesActionType, CodeNamesGameState, 
     CodeNamesGuesserInterface, CodeNamesSpyMasterInterface, CodeNamesWordType
 )

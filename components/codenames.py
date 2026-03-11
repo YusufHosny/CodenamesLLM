@@ -170,6 +170,9 @@ class CodeNamesGameState:
 
 # --------------------------------------- Player Interfaces ---------------------------------------
 class CodeNamesPlayerInterface(ABC):
+  def __init__(self, name: str):
+    self.name = name
+
   def notify(self, game_state: CodeNamesGameState):
     raise NotImplementedError("This method should be implemented by subclasses")
 
