@@ -1,4 +1,4 @@
-from codenames import CodeNamesAction, CodeNamesActionType, CodeNamesGameState, CodeNamesGuesserInterface, CodeNamesSpyMasterInterface, CodeNamesWordType
+from .codenames import CodeNamesAction, CodeNamesActionType, CodeNamesGameState, CodeNamesGuesserInterface, CodeNamesSpyMasterInterface, CodeNamesWordType
 from typing import Optional
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI

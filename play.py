@@ -1,7 +1,7 @@
 def main():
-  from codenames import CodeNamesGame
-  from cli import CLICodeNamesSpyMaster, CLICodeNamesGuesser
-  from llm import LLMCodeNamesSpyMaster, LLMCodeNamesGuesser
+  from components.codenames import CodeNamesGame
+  from components.cli import CLICodeNamesSpyMaster, CLICodeNamesGuesser
+  from components.llm import LLMCodeNamesSpyMaster, LLMCodeNamesGuesser
 
   import logging
   _logger = logging.getLogger('codenames')

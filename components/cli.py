@@ -1,4 +1,4 @@
-from codenames import CodeNamesAction, CodeNamesActionType, CodeNamesGameState, CodeNamesGuesserInterface, CodeNamesPlayerInterface, CodeNamesSpyMasterInterface, CodeNamesWordType
+from .codenames import CodeNamesAction, CodeNamesActionType, CodeNamesGameState, CodeNamesGuesserInterface, CodeNamesPlayerInterface, CodeNamesSpyMasterInterface, CodeNamesWordType
 from colorama import Fore, Style
 
 class CLICodeNamesPlayer(CodeNamesPlayerInterface):
